@@ -26,7 +26,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn complete_test() {
         let file = File::open("input.txt").unwrap();
         let input_buffer = io::BufReader::new(file);
 
@@ -39,6 +39,18 @@ mod tests {
             let result = is_prime(num);
 
             assert_eq!(result, expected_lines.next().unwrap().unwrap().parse().unwrap());
+        }
+    }
+
+    #[test]
+    fn small_test() {
+        let numbers = vec![3, 7, 9, 4, 2];
+        let expected = vec![1, 1, 0, 0, 1];
+
+        for (i, num) in numbers.iter().enumerate() {
+            let result = is_prime(*num);
+
+            assert_eq!(result, expected[i]);
         }
     }
 }
