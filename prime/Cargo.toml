@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 primal = "0.2"
-mimalloc = { version = "0.1", default-features = false }
+tokio = { version = "0.2", features = ["full"] }
 
 [profile.release]
 lto = true

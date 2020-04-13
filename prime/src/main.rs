@@ -2,14 +2,17 @@ use std::env;
 use std::fs::File;
 use std::io::{self, BufRead};
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let filename = &env::args().collect::<Vec<String>>()[1];
     let file = File::open(filename).unwrap();
     let buffer = io::BufReader::new(file);
 
     for line in buffer.lines() {
         let num = line.unwrap().parse().unwrap();
-        println!("{}", is_prime(num));
+        tokio::spawn(async move {
+            println!("{}", is_prime(num));
+        });
     }
 }
 
