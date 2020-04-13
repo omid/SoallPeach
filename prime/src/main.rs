@@ -1,23 +1,31 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead};
+use std::collections::HashMap;
 
-#[tokio::main]
-async fn main() {
+fn main() {
+    let mut pool = HashMap::new();
     let filename = &env::args().collect::<Vec<String>>()[1];
     let file = File::open(filename).unwrap();
     let buffer = io::BufReader::new(file);
 
     for line in buffer.lines() {
-        let num = line.unwrap().parse().unwrap();
-        tokio::spawn(async move {
-            println!("{}", is_prime(num));
-        });
+        let num = line.unwrap().parse::<u32>().unwrap();
+        let mut cached_result = pool.get(&num);
+        let prime;
+
+        if cached_result.is_none() {
+            prime = is_prime(num);
+            pool.insert(num, prime);
+            cached_result = Some(&prime);
+        }
+
+        println!("{}", cached_result.unwrap());
     }
 }
 
-fn is_prime(num: u64) -> u8 {
-    if primal::is_prime(num) {
+fn is_prime(num: u32) -> u8 {
+    if primal::is_prime(num as u64) {
         1
     } else {
         0
