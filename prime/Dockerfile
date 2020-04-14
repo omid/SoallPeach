@@ -1,8 +1,13 @@
-FROM rust
+FROM rust:alpine as builder
 
 WORKDIR /app
 COPY . /app
 
 RUN cargo build --release
 
-ENTRYPOINT ["/app/target/release/prime"]
+FROM alpine:latest
+
+COPY --from=builder /app/target/release/prime /prime
+
+ENTRYPOINT ["/prime"]
+
