@@ -9,6 +9,8 @@ fn main() {
     let file = File::open(filename).unwrap();
     let buffer = io::BufReader::new(file);
 
+    let mut output = String::new();
+
     for line in buffer.lines() {
         let num = line.unwrap().parse::<u32>().unwrap();
         let mut cached_result = pool.get(&num);
@@ -20,8 +22,11 @@ fn main() {
             cached_result = Some(&prime);
         }
 
-        println!("{}", cached_result.unwrap());
+        output.push_str(&cached_result.unwrap().to_string());
+        output.push('\n');
     }
+
+    print!("{}", output)
 }
 
 fn is_prime(num: u32) -> u8 {
