@@ -11,10 +11,12 @@ fn main() {
 
     let mut output = String::new();
 
+    let mut num;
+    let mut cached_result;
+    let mut prime;
     for line in buffer.lines() {
-        let num = line.unwrap().parse::<u32>().unwrap();
-        let mut cached_result = pool.get(&num);
-        let prime;
+        num = line.unwrap().parse::<u32>().unwrap();
+        cached_result = pool.get(&num);
 
         if cached_result.is_none() {
             prime = is_prime(num);
@@ -29,11 +31,11 @@ fn main() {
     print!("{}", output)
 }
 
-fn is_prime(num: u32) -> u8 {
+fn is_prime(num: u32) -> char {
     if primal::is_prime(num as u64) {
-        1
+        '1'
     } else {
-        0
+        '0'
     }
 }
 
