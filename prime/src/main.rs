@@ -1,30 +1,35 @@
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 use std::env;
 use std::fs::File;
-use std::io::{self, BufRead};
-use std::collections::HashMap;
+use std::io::Read;
+use fxhash::FxHashMap;
 
 fn main() {
-    let mut pool = HashMap::new();
     let filename = &env::args().collect::<Vec<String>>()[1];
-    let file = File::open(filename).unwrap();
-    let buffer = io::BufReader::new(file);
+    let mut file = File::open(filename).unwrap();
+    let mut lines = String::new();
+    file.read_to_string(&mut lines).unwrap();
 
+    let mut pool = FxHashMap::default();
     let mut output = String::new();
 
     let mut num;
     let mut cached_result;
     let mut prime;
-    for line in buffer.lines() {
-        num = line.unwrap().parse::<u32>().unwrap();
+    for line in lines.split_whitespace() {
+        num = line.parse::<u32>().unwrap();
         cached_result = pool.get(&num);
 
-        if cached_result.is_none() {
+        if cached_result.is_some() {
+            output.push(*cached_result.unwrap());
+        } else {
             prime = is_prime(num);
             pool.insert(num, prime);
-            cached_result = Some(&prime);
+            output.push(prime);
         }
 
-        output.push_str(&cached_result.unwrap().to_string());
         output.push('\n');
     }
 
@@ -45,25 +50,27 @@ mod tests {
 
     #[test]
     fn complete_test() {
-        let file = File::open("input.txt").unwrap();
-        let input_buffer = io::BufReader::new(file);
+        let mut file = File::open("input.txt").unwrap();
+        let mut input_lines = String::new();
+        file.read_to_string(&mut input_lines).unwrap();
 
-        let file = File::open("expected.txt").unwrap();
-        let expected_buffer = io::BufReader::new(file);
-        let mut expected_lines = expected_buffer.lines();
+        let mut file = File::open("expected.txt").unwrap();
+        let mut expected_lines = String::new();
+        file.read_to_string(&mut expected_lines).unwrap();
+        let mut expected_lines = expected_lines.split_whitespace();
 
-        for line in input_buffer.lines() {
-            let num = line.unwrap().parse().unwrap();
+        for line in input_lines.split_whitespace() {
+            let num = line.parse().unwrap();
             let result = is_prime(num);
 
-            assert_eq!(result, expected_lines.next().unwrap().unwrap().parse().unwrap());
+            assert_eq!(result, expected_lines.next().unwrap().parse().unwrap());
         }
     }
 
     #[test]
     fn small_test() {
         let numbers = vec![3, 7, 9, 4, 2];
-        let expected = vec![1, 1, 0, 0, 1];
+        let expected = vec!['1', '1', '0', '0', '1'];
 
         for (i, num) in numbers.iter().enumerate() {
             let result = is_prime(*num);
