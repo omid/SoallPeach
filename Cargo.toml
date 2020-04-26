@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "prime",
+    "countme",
 ]
 
 [profile.release]

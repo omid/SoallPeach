@@ -1,0 +1,18 @@
+[package]
+name = "countme"
+version = "0.1.0"
+authors = ["Omid Rad <omidmr@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+actix-web = "2.0"
+actix-rt = "1.1"
+
+# It'll be used inside Docker
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.release.build-override]
+opt-level = 0
