@@ -7,12 +7,12 @@ async fn index(
     counter: web::Data<AtomicUsize>,
     count: String,
 ) -> HttpResponse {
-    counter.fetch_add(count.parse::<usize>().unwrap_or(0), Ordering::SeqCst);
+    counter.fetch_add(count.parse::<usize>().unwrap_or(0), Ordering::AcqRel);
     HttpResponse::Ok().finish()
 }
 
 async fn count(counter: web::Data<AtomicUsize>) -> HttpResponse {
-    HttpResponse::Ok().body(counter.load(Ordering::SeqCst).to_string())
+    HttpResponse::Ok().body(counter.load(Ordering::AcqRel).to_string())
 }
 
 #[actix_rt::main]
