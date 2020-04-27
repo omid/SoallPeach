@@ -7,7 +7,7 @@ async fn index(
     counter: web::Data<AtomicUsize>,
     count: String,
 ) -> HttpResponse {
-    counter.fetch_add(count.trim().parse::<usize>().unwrap_or(0), Ordering::SeqCst);
+    counter.fetch_add(count.parse::<usize>().unwrap_or(0), Ordering::SeqCst);
     HttpResponse::Ok().finish()
 }
 
