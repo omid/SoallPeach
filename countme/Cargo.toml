@@ -5,8 +5,8 @@ authors = ["Omid Rad <omidmr@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-actix-web = "2.0"
-actix-rt = "1.1"
+hyper = "0.13"
+tokio = { version = "0.2", features = ["full"] }
 
 # It'll be used inside Docker
 [profile.release]
