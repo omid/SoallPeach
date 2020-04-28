@@ -5,8 +5,8 @@ authors = ["Omid Rad <omidmr@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-actix-web = "2.0"
-actix-rt = "1.1"
+actix-web = { version="3.0.0-alpha.1", default-features=false }
+actix-rt = "*"
 
 # It'll be used inside Docker
 [profile.release]
