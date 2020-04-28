@@ -1,51 +1,31 @@
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc,
-};
+use std::io;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Error, Response, Server, Method, StatusCode};
-use std::str;
+use actix_web::{web, App, HttpResponse, HttpServer};
 
-#[tokio::main]
-async fn main() {
-    let addr = ([0, 0, 0, 0], 80).into();
+async fn index(
+    counter: web::Data<AtomicUsize>,
+    count: String,
+) -> HttpResponse {
+    counter.fetch_add(count.parse::<usize>().unwrap_or(0), Ordering::AcqRel);
+    HttpResponse::Ok().finish()
+}
 
-    let counter = Arc::new(AtomicUsize::new(0));
+async fn count(counter: web::Data<AtomicUsize>) -> HttpResponse {
+    HttpResponse::Ok().body(counter.load(Ordering::Acquire).to_string())
+}
 
-    let make_service = make_service_fn(move |_| {
-        let counter = counter.clone();
+#[actix_rt::main]
+async fn main() -> io::Result<()> {
+    let counter = web::Data::new(AtomicUsize::new(0usize));
 
-        async move {
-            Ok::<_, Error>(service_fn(move |req| {
-                let counter = counter.clone();
-
-                async move {
-                    match (req.method(), req.uri().path()) {
-                        (&Method::GET, "/count") => Ok::<_, Error>(Response::new(Body::from(counter.load(Ordering::Acquire).to_string()))),
-                        (&Method::POST, "/") => {
-                            let num = hyper::body::to_bytes(req).await?;
-                            let num = str::from_utf8(&num).map(str::to_owned).unwrap();
-
-                            counter.fetch_add(num.parse::<usize>().unwrap_or(0), Ordering::AcqRel);
-
-                            return Ok::<_, Error>(Response::builder()
-                                .body(Body::empty())
-                                .unwrap());
-                        }
-                        _ => Ok::<_, Error>(Response::builder()
-                            .status(StatusCode::NOT_FOUND)
-                            .body(Body::empty())
-                            .unwrap()),
-                    }
-                }
-            }))
-        }
-    });
-
-    let server = Server::bind(&addr).serve(make_service);
-
-    if let Err(e) = server.await {
-        eprintln!("server error: {}", e);
-    }
+    HttpServer::new(move || {
+        App::new()
+            .app_data(counter.clone())
+            .service(web::resource("/").to(index))
+            .service(web::resource("/count").to(count))
+    })
+        .bind("0.0.0.0:80")?
+        .run()
+        .await
 }
