@@ -1,27 +1,36 @@
 use std::io;
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-use actix_web::{web, App, HttpResponse, HttpServer};
+use actix_web::{web::{self, Data}, App, HttpResponse, HttpServer};
+use std::sync::Mutex;
 
 async fn index(
-    counter: web::Data<AtomicUsize>,
+    numbers: Data<Mutex<Vec<i8>>>,
     count: String,
 ) -> HttpResponse {
-    counter.fetch_add(count.parse::<usize>().unwrap_or(0), Ordering::AcqRel);
+    (*numbers.lock().unwrap())
+        .push(count.parse::<i8>().unwrap_or(0));
     HttpResponse::Ok().finish()
 }
 
-async fn count(counter: web::Data<AtomicUsize>) -> HttpResponse {
-    HttpResponse::Ok().body(counter.load(Ordering::Acquire).to_string())
+async fn count(numbers: Data<Mutex<Vec<i8>>>) -> HttpResponse {
+    HttpResponse::Ok().body(
+        (*numbers.lock().unwrap())
+            .iter()
+            .map(|num| *num as i32)
+            .sum::<i32>()
+            .to_string()
+    )
 }
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
-    let counter = web::Data::new(AtomicUsize::new(0usize));
+    let mut vec = Vec::new();
+    vec.reserve(100000);
+    let numbers: Data<Mutex<Vec<i8>>> = Data::new(Mutex::new(vec));
+
 
     HttpServer::new(move || {
         App::new()
-            .app_data(counter.clone())
+            .app_data(numbers.clone())
             .service(web::resource("/").to(index))
             .service(web::resource("/count").to(count))
     })
