@@ -6,8 +6,19 @@ async fn index(
     numbers: Data<Mutex<Vec<i8>>>,
     count: String,
 ) -> HttpResponse {
-    (*numbers.lock().unwrap())
-        .push(count.parse::<i8>().unwrap_or(0));
+    (*numbers.lock().unwrap()).push(match count.as_str() {
+        "1" => 1,
+        "2" => 2,
+        "3" => 3,
+        "4" => 4,
+        "5" => 5,
+        "6" => 6,
+        "7" => 7,
+        "8" => 8,
+        "9" => 9,
+        "10" => 10,
+        _ => count.parse::<i8>().unwrap_or(0),
+    });
     HttpResponse::Ok().finish()
 }
 
